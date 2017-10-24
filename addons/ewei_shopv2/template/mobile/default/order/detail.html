@@ -208,7 +208,8 @@
 						</div>
 						<div class="fui-list-inner">
 							<div class="title">{if $g['seckill_task']}<span class="fui-label fui-label-danger">{$g['seckill_task']['tag']}</span>{/if}{$g['title']}</div>
-							{if !empty($g['optionid'])}<div class="subtitle">{$g['optiontitle']}</div>{/if}
+							{if !empty($g['optionid'])}<div class="subtitle">{if !empty($sortStr)}{$sortStr}{else}{$g['optiontitle']}{/if}</div>{/if}
+
 							{if $g['status']==2}
 							<div class="subtitle">
 								<label class="fui-label fui-label-danger">赠品</label>
@@ -216,7 +217,7 @@
 							{/if}
 						</div>
 						<div class="fui-list-angle" style="margin-right: 0">
-							<div style="color: #000">￥{$g['price']}</div>
+							<div style="color: #000">￥{php echo number_format($g['price']/$g['total'],2)}</div>
 							<div class="num">x{$g['total']}</div>
 						</div>
 					</a>
@@ -400,40 +401,36 @@
 								{/if}
 							</div>
 		{/if}
-
+		{if $order['status'] > 0}
 		{if !empty($order['virtual']) && !empty($order['virtual_str'])}
 			<!--发货信息-->
-			<div class="fui-according-group">
-				<div class="fui-according expanded">
-					<div class="fui-according-header">
-						<span class="text">发货信息</span>
-						<span class="remark"></span>
-					</div>
-					<div class="fui-according-content"  style="display: block;">
-						<div class="content-block">
-							<div class="fui-cell-group notop">
-								{if is_array($ordervirtual)}
-									{loop $ordervirtual $ordervirtualrow}
-											<div  class="fui-cell">
-												<div class="fui-cell-label">{$ordervirtualrow['key']}</div>
-												<div class="fui-cell-info" style="white-space: normal;word-wrap: break-word">{$ordervirtualrow['value']}</div>
-											</div>
-									{/loop}
-								{else}
-									<div  class="fui-cell">
-										<div class="fui-cell-info" style="white-space: normal;word-wrap: break-word">
-											{$order['virtual_str']}
-										</div>
-									</div>
-								{/if}
-								{if !empty($virtualtemp) && !empty($virtualtemp['linkurl'])}
-								<a class="btn btn-default block" href="{$virtualtemp['linkurl']}">{php echo !empty($virtualtemp['linktext'])? $virtualtemp['linktext']: '使用地址'}</a>
-								{/if}
-							</div>
+			{if is_array($ordervirtual) && !empty($ordervirtual)}
+				{loop $ordervirtual $ordervirtualindex $ordervirtualitem}
+					<div class="fui-cell-group">
+						<div class="fui-cell-title">发货信息 {php echo count($ordervirtual)>1? $ordervirtualindex+1: ''}</div>
+						{loop $ordervirtualitem $ordervirtualrow}
+						<div class="fui-cell">
+							<div class="fui-cell-label">{$ordervirtualrow['key']}</div>
+							<div class="fui-cell-info" style="white-space: normal;word-wrap: break-word">{$ordervirtualrow['value']}</div>
 						</div>
+						{/loop}
+						{if !empty($virtualtemp) && !empty($virtualtemp['linkurl'])}
+						<a class="btn btn-default block" href="{$virtualtemp['linkurl']}">{php echo !empty($virtualtemp['linktext'])? $virtualtemp['linktext']: '使用地址'}</a>
+						{/if}
 					</div>
+				{/loop}
+			{else}
+				<div class="fui-cell-group">
+					<div class="fui-cell-title">发货信息</div>
+					<div class="fui-cell">
+						<div class="fui-cell-info" style="white-space: normal;word-wrap: break-word">{$order['virtual_str']}</div>
+					</div>
+					{if !empty($virtualtemp) && !empty($virtualtemp['linkurl'])}
+					<a class="btn btn-default block" href="{$virtualtemp['linkurl']}">{php echo !empty($virtualtemp['linktext'])? $virtualtemp['linktext']: '使用地址'}</a>
+					{/if}
 				</div>
-			</div>
+			{/if}
+
 		{/if}
 
 		{if !empty($order['isvirtualsend']) && !empty($order['virtualsend_info'])}
@@ -458,7 +455,7 @@
 				</div>
 			</div>
 		{/if}
-
+		{/if}
 		<!--商品小计-->
 		<div class="fui-cell-group noborder">
 			<div class="fui-cell">
@@ -689,11 +686,19 @@
 				{if $order['status']==3 && $order['iscomment']==0 && empty($_W['shopset']['trade']['closecomment'])}
 					<a class="btn btn-sm btn-default-o" href="{php echo mobileUrl('order/comment',array('id'=>$order['id']))}">评价</a>
 				{/if}
-				{if $order['status']==2}
+
+				{if !empty($activity)&& empty($order['refundstate']) &&$order['status']>0}
+					{if $order['isshare'] == 0}
+						<a data-nocache="true" class="btn btn-sm btn-default-o" href="{php echo mobileUrl('sale/sendticket/share/unclaimed',array('orderid'=>$order['id'],'money'=>$order['price']))}">领取优惠券</a>
+					{/if}
+				{/if}
+
+				{if $order['status']==2 && empty($order['refundstate']) }
 					<div class="btn btn-sm btn-default-o order-finish" data-orderid="{$order['id']}">确认收货</div>
 				{/if}
 
 				{if $order['canrefund']}
+
 					<a data-nocache="true" class="btn btn-sm btn-default-o" href="{php echo mobileUrl('order/refund',array('id'=>$order['id']))}">{if !empty($order['refundstate'])}查看{/if}{if $order['status'] ==1}申请退款{else}申请售后{/if}{if !empty($order['refundstate'])}进度{/if}</a>
 				{/if}
 

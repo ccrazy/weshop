@@ -321,7 +321,7 @@ class Finance_EweiShopV2Model
 			return $payment;
 		}
 		$certs = $payment;
-		if ($payment['is_new'] == 0) 
+		if (($payment['is_new'] == 0) && !($app)) 
 		{
 			$setting = uni_setting($_W['uniacid'], array('payment'));
 			if (!(is_array($setting['payment']))) 
